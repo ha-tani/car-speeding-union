@@ -1,0 +1,9 @@
+__pycache/
+.vscode/
+20260407/
+err.txt
+out.txt
+videos/
+assets/
+ffmpeg/
+ffmpeg.zip
