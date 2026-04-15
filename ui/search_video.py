@@ -4,7 +4,7 @@
 
 find_and_clip_video(detected_at, camera_id) -> str | None
   detected_at   : datetime または "YYYY-MM-DD HH:MM:SS" 形式の文字列
-  camera_id     : int (1=cameraA, 2=cameraB)
+  camera_id     : int (1=cameraA, 2=cameraB, 3=cameraC)
   戻り値        : ffmpeg で切り出した一時ファイルのパス。失敗時は None。
 """
 from __future__ import annotations
@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 _BASE_DIR: Path = Path(__file__).resolve().parent.parent
 _FFMPEG_EXE: Path = _BASE_DIR / "ffmpeg" / "ffmpeg" / "bin" / "ffmpeg.exe"
 _VIDEOS_DIR: Path = _BASE_DIR / "videos"
-_CAMERA_FOLDER_MAP: dict[int, str] = {1: "cameraA", 2: "cameraB"}
+_CAMERA_FOLDER_MAP: dict[int, str] = {1: "cameraA", 2: "cameraB", 3: "cameraC"}
 _VIDEO_PATTERN = re.compile(r"^(\d{8}_\d{6})\.(avi|mp4)$", re.IGNORECASE)
 
 
@@ -175,13 +175,22 @@ def find_and_clip_video_range(
         return None
 
     # start_dt を含むファイル（start_dt 以前で最後のもの）を特定
+    # start_dt より2時間以上前のファイルしかない場合は start_dt ～ end_dt 内の最初のファイルを使用
+    _TWO_HOURS = 1800  # 秒
     start_file_idx: int | None = None
     for i, (file_dt, _) in enumerate(all_files):
         if file_dt <= start_dt:
             start_file_idx = i
 
+    if start_file_idx is None or (start_dt - all_files[start_file_idx][0]).total_seconds() >= _TWO_HOURS:
+        start_file_idx = None
+        for i, (file_dt, _) in enumerate(all_files):
+            if start_dt <= file_dt < end_dt:
+                start_file_idx = i
+                break
+
     if start_file_idx is None:
-        log.warning("開始時刻以前の動画ファイルがありません: %s", start_dt)
+        log.warning("検索範囲内に動画ファイルがありません: %s ~ %s", start_dt, end_dt)
         return None
 
     # start_file から end_dt 以前のファイルをすべて収集
@@ -205,14 +214,26 @@ def find_and_clip_video_range(
         start_dt, end_dt, len(selected), start_offset_s, total_duration_s,
     )
 
-    # concat リストファイルを作成（Windows パスはスラッシュ区切りを使用）
+    # concat リストファイルを作成
+    # inpoint/outpoint で重複排除（パターン②）・末尾の超過防止（パターン①）を処理する
     concat_fd, concat_list_path = tempfile.mkstemp(suffix=".txt")
     try:
         with os.fdopen(concat_fd, "w", encoding="utf-8") as cf:
-            for _, p in selected:
-                # ffmpeg concat demuxer はシングルクォートでパスを囲む
+            for i, (file_dt, p) in enumerate(selected):
                 safe_path = str(p).replace("\\", "/")
                 cf.write(f"file '{safe_path}'\n")
+                # 先頭ファイルのみ: start_dt から開始（ファイル開始がstart_dtより後の場合は0）
+                if i == 0:
+                    inpoint_s = max(0.0, (start_dt - file_dt).total_seconds())
+                    cf.write(f"inpoint {inpoint_s:.3f}\n")
+                # 中間ファイル: 次ファイルの開始時刻で打ち切る（重複部分を先頭ファイル側から除外）
+                # 末尾ファイル: end_dt で打ち切る（ギャップがあっても期間を超過しない）
+                if i < len(selected) - 1:
+                    next_file_dt = selected[i + 1][0]
+                    outpoint_s = (next_file_dt - file_dt).total_seconds()
+                else:
+                    outpoint_s = (end_dt - file_dt).total_seconds()
+                cf.write(f"outpoint {outpoint_s:.3f}\n")
     except OSError as exc:
         log.error("concat リストファイルの書き込みに失敗しました: %s", exc)
         return None
@@ -226,8 +247,6 @@ def find_and_clip_video_range(
         "-f", "concat",
         "-safe", "0",
         "-i", concat_list_path,
-        "-ss", f"{start_offset_s:.3f}",
-        "-t", f"{total_duration_s:.3f}",
         "-c", "copy",
         "-y",
         tmp_path,

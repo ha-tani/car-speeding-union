@@ -244,6 +244,7 @@ class CommonSidebarWidget(QWidget):
         self.map_combobox.addItem("すべてのカメラ")
         self.map_combobox.addItem("カメラA")
         self.map_combobox.addItem("カメラB")
+        self.map_combobox.addItem("カメラC")
         self.map_combobox.setMinimumHeight(40)
         self.map_combobox.setStyleSheet("font-size: 14px;")
         self.map_combobox.currentIndexChanged.connect(self._on_map_changed)

@@ -360,7 +360,7 @@ class VideoPlayerView(QWidget):
             return True
 
         iface = RealtimeDetectionInterface()
-        if not iface.initialize(self._fps):
+        if not iface.initialize(self._fps, self._camera_id):
             self._log.error("リアルタイム検出初期化に失敗しました")
             self._realtime_detection_enabled = False
             self._detection_iface = None

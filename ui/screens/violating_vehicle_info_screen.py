@@ -183,6 +183,7 @@ class SearchResultScreen(QWidget):
         self.camera_combo.addItem("すべてのカメラ")
         self.camera_combo.addItem("カメラA")
         self.camera_combo.addItem("カメラB")
+        self.camera_combo.addItem("カメラC")
         row1.addWidget(self.camera_combo)
 
         row1.addStretch(1)
@@ -239,6 +240,8 @@ class SearchResultScreen(QWidget):
     _CAMERA_ID_MAP: dict[str, int] = {
         "カメラA": 1,
         "カメラB": 2,
+        "カメラC": 3,
+
     }
 
     def _on_search_clicked(self) -> None:
@@ -294,7 +297,7 @@ class SearchResultScreen(QWidget):
     # ─────────────────────────────────────────────
     # camera_id → カメラ名 マッピング
     # ─────────────────────────────────────────────
-    _CAMERA_NAME_MAP: dict[int, str] = {1: "カメラA", 2: "カメラB"}
+    _CAMERA_NAME_MAP: dict[int, str] = {1: "カメラA", 2: "カメラB", 3: "カメラC"}
 
     def _clear_results(self) -> None:
         layout = self._results_layout

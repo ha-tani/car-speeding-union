@@ -27,7 +27,7 @@ FAST_PLATE_OCR_MODEL_DIR = MODELS_DIR / "fast-plate-ocr"  # fast-plate-ocrモデ
 # 複数クラスを検出対象に
 VEHICLE_CLASS_IDS = [2, 3, 5, 7]  # 車、バイク、バス、トラック
 CAR_CLASS_ID = 2  # 後方互換性のため維持
-CONF_TH = 0.40  # 誤検出を抑えつつ検出漏れを防ぐバランス値
+CONF_TH = 0.35  # 誤検出を抑えつつ検出漏れを防ぐバランス値
 NMS_IOU_TH = 0.3  # YOLO NMS の IoU 閾値
 PLATE_CONF_TH = 0.25  # ナンバープレート検出の信頼度閾値
 

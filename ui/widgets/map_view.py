@@ -148,7 +148,10 @@ class MapGraphicsView(QGraphicsView):
                     ("orange_6.png", "red_6.png", 246, 145, "カメラA"),
                     # ↓ MAP上にアイコンを追加する場合はここに記載
                     ("orange_6.png", "red_6.png", 265, 145, "カメラB"),
+                    # ↓ MAP上にアイコンを追加する場合はここに記載
+                    ("orange_6.png", "red_6.png", 285, 145, "カメラC"),
                 ]
+                
                 self._camera_icons = []
                 for normal_name, selected_name, x, y, camera_name in icon_defs:
                     pix_n = QPixmap(str(assets_dir / normal_name)).scaled(20, 20)

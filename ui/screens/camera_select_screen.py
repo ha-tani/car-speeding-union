@@ -178,7 +178,7 @@ class CameraSelectScreen(QWidget):
         bg_layout.addStretch(6)
 
     # --- helpers ---
-    _CAMERA_ID_MAP: dict[str, int] = {"カメラA": 1, "カメラB": 2}
+    _CAMERA_ID_MAP: dict[str, int] = {"カメラA": 1, "カメラB": 2, "カメラC": 3}
 
     def _on_check_video_clicked(self) -> None:
         """「映像を確認する」ボタン押下：日時とカメラIDをシグナルで発火する。"""

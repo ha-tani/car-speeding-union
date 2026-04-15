@@ -44,18 +44,58 @@ class RealtimeDetectionInterface:
     def is_initialized(self) -> bool:
         return self._car_detector is not None and self._speed_tracker is not None
 
-    def initialize(self, fps: float) -> bool:
+    def initialize(self, fps: float, camera_id: int | None = None) -> bool:
         """YoloDetector と SpeedTracker を初期化する。
 
         Args:
             fps: 動画のフレームレート。
+            camera_id: カメラID（cameras テーブルの camera_code に対応）。
+                       指定時は DB からキャリブレーション値を取得する。
+                       None または DB 取得失敗時は config の値にフォールバック。
         Returns:
             初期化に成功した場合 True。
         """
         try:
-            src_points = config.CALIB_SRC_POINTS
-            road_width = config.CALIB_ROAD_WIDTH
-            road_depth = config.CALIB_ROAD_DEPTH
+            src_points = None
+            road_width = None
+            road_depth = None
+            speed_limit = None
+
+            # DB からカメラパラメータを取得
+            if camera_id is not None:
+                try:
+                    from db.db_query import get_camera_params_by_id
+                    params = get_camera_params_by_id(camera_id)
+                    if params:
+                        src_points = params.get("road_range")
+                        road_width = params.get("road_width")
+                        road_depth = params.get("road_depth")
+                        speed_limit = params.get("speed_limit")
+                        self._log.info(
+                            "DBからカメラパラメータを取得しました (camera_code=%s): "
+                            "road_width=%s, road_depth=%s, speed_limit=%s",
+                            camera_id, road_width, road_depth, speed_limit,
+                        )
+                    else:
+                        self._log.warning(
+                            "camera_code=%s の行が cameras テーブルに見つかりません。config を使用します。",
+                            camera_id,
+                        )
+                except Exception as db_exc:
+                    self._log.warning(
+                        "DBからカメラパラメータの取得に失敗しました。config を使用します: %s", db_exc
+                    )
+
+            # DB で取得できなかった項目は config でフォールバック
+            if src_points is None:
+                src_points = config.CALIB_SRC_POINTS
+            if road_width is None:
+                road_width = config.CALIB_ROAD_WIDTH
+            if road_depth is None:
+                road_depth = config.CALIB_ROAD_DEPTH
+            if speed_limit is None:
+                speed_limit = config.SPEED_LIMIT
+
             dst_points = [
                 [0.0, 0.0],
                 [road_width, 0.0],
@@ -67,7 +107,7 @@ class RealtimeDetectionInterface:
                 src_points,
                 dst_points,
                 fps,
-                speed_threshold_kmh=config.SPEED_LIMIT,
+                speed_threshold_kmh=speed_limit,
             )
             return True
         except Exception as exc:
