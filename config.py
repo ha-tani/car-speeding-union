@@ -27,8 +27,9 @@ FAST_PLATE_OCR_MODEL_DIR = MODELS_DIR / "fast-plate-ocr"  # fast-plate-ocrモデ
 # 複数クラスを検出対象に
 VEHICLE_CLASS_IDS = [2, 3, 5, 7]  # 車、バイク、バス、トラック
 CAR_CLASS_ID = 2  # 後方互換性のため維持
-CONF_TH = 0.35  # 誤検出を抑えつつ検出漏れを防ぐバランス値
+CONF_TH = 0.3  # 誤検出を抑えつつ検出漏れを防ぐバランス値
 NMS_IOU_TH = 0.3  # YOLO NMS の IoU 閾値
+MIN_BBOX_SIZE = 30  # 最小BBoxサイズ [px] (これ未満の検出は除外)
 PLATE_CONF_TH = 0.25  # ナンバープレート検出の信頼度閾値
 
 # -------------------------
@@ -45,7 +46,6 @@ FONT_SCALE = 0.6
 FONT_THICKNESS = 2
 
 # 速度超過警告設定
-SPEED_THRESHOLD_KMH = 25  # この速度(km/h)を超えると速度違反として検出・記録
 SPEED_WARNING_COLOR = (0, 0, 255)  # Red (赤色)
 SPEED_NORMAL_COLOR = (0, 255, 0)   # Green (緑色)
 
@@ -72,9 +72,19 @@ SPEED_SMOOTHING_WINDOW = 15   # 速度スムージングのフレーム数
 SPEED_HISTORY_SIZE = 20       # 位置履歴の保持フレーム数
 SPEED_MIN_THRESHOLD_KMH = 3.0 # この速度以下は停車とみなす [km/h]
 SPEED_MIN_PIXEL_MOVEMENT = 3.0 # このピクセル以下の移動はノイズとみなす
-SPEED_MAX_LIMIT = 60.0 # 速度上限 [km/h] (これ以上は異常値とみなしBBOX非表示)
-SPEED_LIMIT = 5.0 # 速度制限 [km/h]
-TRACK_MIN_AGE_FRAMES = 30     # この検出フレーム数未満のトラックは速度計算しない
+SPEED_MAX_LIMIT = 80.0 # 速度上限 [km/h] (これ以上は異常値とみなしBBOX非表示)
+SPEED_LIMIT = 25.0 # 速度制限 [km/h] (DB未設定時のフォールバック値)
+TRACK_MIN_AGE_FRAMES = 10     # この検出フレーム数未満のトラックは速度計算しない
+
+# -------------------------
+# ByteTrack 設定
+# -------------------------
+BYTE_TRACK_MAX_AGE = 10           # トラック消滅までの最大未検出フレーム数
+BYTE_TRACK_MIN_HITS = 1           # トラック出力に必要な最小連続検出数
+BYTE_TRACK_IOU_THRESHOLD = 0.15   # 1st association の IoU 閾値
+BYTE_TRACK_HIGH_THRESH = 0.5      # 高信頼度検出の闾値
+BYTE_TRACK_LOW_THRESH = 0.1       # 低信頼度検出の下限 (2nd association 用)
+BYTE_TRACK_SECOND_IOU_THRESH = 0.3  # 2nd association の IoU 閾値
 
 # -------------------------
 # 静止車両フィルタ設定

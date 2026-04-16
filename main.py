@@ -164,6 +164,7 @@ async def _analyze(
         src_points = None
         road_width = None
         road_depth = None
+        db_speed_limit = None
         if camera_name:
             try:
                 cam = get_camera_by_name(camera_name)
@@ -177,10 +178,12 @@ async def _analyze(
                     src_points = cam["road_range"]
                     road_width = cam["road_width"]
                     road_depth = cam["road_depth"]
+                    db_speed_limit = cam["speed_limit"]
                     logger.info(
                         f"カメラ設定取得: camera_name={camera_name}, "
                         f"camera_id={camera_id}, "
-                        f"road_width={road_width}, road_depth={road_depth}"
+                        f"road_width={road_width}, road_depth={road_depth}, "
+                        f"speed_limit={db_speed_limit}"
                     )
             except Exception as e:
                 logger.warning(
@@ -195,7 +198,7 @@ async def _analyze(
                 road_width=road_width,
                 road_depth=road_depth,
                 fps=fps,
-                speed_limit_kmh=speed_limit,
+                speed_limit_kmh=speed_limit or db_speed_limit,
             )
         )
 

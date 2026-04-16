@@ -87,6 +87,7 @@ class SearchResultScreen(QWidget):
         super().__init__(parent)
         self._sidebar_open: bool = True
         self._results_layout: QVBoxLayout | None = None
+        self._last_rows: list[dict] = []
         self._setup_ui()
         self._on_search_clicked()
 
@@ -292,6 +293,7 @@ class SearchResultScreen(QWidget):
 
         # ⑥ 結果をグリッドエリアに表示
         self.result_label.setText(f"違反車両一覧（{len(rows)} 件）")
+        self._last_rows = rows
         self._populate_results(rows)
 
     # ─────────────────────────────────────────────
@@ -324,77 +326,100 @@ class SearchResultScreen(QWidget):
     def _populate_results(self, rows: list[dict]) -> None:
         self._clear_results()
 
-        _text_style = "font-size: 12px; color: #000000;"
-        for row in rows:
-            row_widget = _ResultRow(row, self)
-            row_widget.clicked.connect(self._on_row_clicked)
+        row_widgets = [self._build_row_widget(row) for row in rows]
 
-            row_h_layout = QHBoxLayout(row_widget)
-            row_h_layout.setContentsMargins(8, 8, 8, 8)
-            row_h_layout.setSpacing(12)
+        if self._sidebar_open:
+            # 1列
+            for w in row_widgets:
+                self._results_layout.addWidget(w)
+        else:
+            # 2列: 2つずつ横並び
+            for i in range(0, len(row_widgets), 2):
+                pair = QWidget()
+                pair_layout = QHBoxLayout(pair)
+                pair_layout.setContentsMargins(0, 0, 0, 0)
+                pair_layout.setSpacing(8)
+                pair_layout.addWidget(row_widgets[i], 1)
+                if i + 1 < len(row_widgets):
+                    pair_layout.addWidget(row_widgets[i + 1], 1)
+                else:
+                    pair_layout.addStretch(1)
+                self._results_layout.addWidget(pair)
 
-            # ナンバープレート画像
-            row_h_layout.addWidget(self._make_image_label(row.get("plate_image_path")))
-            # 車両画像
-            row_h_layout.addWidget(self._make_image_label(row.get("vehicle_image_path")))
-            # 画像とテキストの間にスペース
-            row_h_layout.addSpacing(30) 
-            # テキスト情報 4行
-            detected_at = row.get("detected_at")
-            if detected_at is not None:
-                dt_str = str(detected_at)
-                date_part = dt_str[:10]    # "YYYY-MM-DD"
-                time_part = dt_str[11:19]  # "HH:MM:SS"
-            else:
-                date_part = "—"
-                time_part = "—"
-
-            camera_id_val = row.get("camera_id")
-            camera_name = self._CAMERA_NAME_MAP.get(
-                camera_id_val, str(camera_id_val) if camera_id_val is not None else "—"
-            )
-            measured_speed = row.get("measured_speed")
-
-            info_widget = QWidget(row_widget)
-            info_layout = QVBoxLayout(info_widget)
-            info_layout.setContentsMargins(0, 4, 0, 4)
-            info_layout.setSpacing(4)
-            for text in [
-                f"日時：{date_part}",
-                f"時間：{time_part}",
-                f"速度：{measured_speed if measured_speed is not None else '—'}km/h",
-                f"カメラ：{camera_name}",
-            ]:
-                lbl = QLabel(text, info_widget)
-                lbl.setStyleSheet(_text_style)
-                info_layout.addWidget(lbl)
-            info_layout.addStretch(1)
-
-            row_h_layout.addWidget(info_widget)
-
-            play_btn = QPushButton(row_widget)
-            play_btn.setIcon(QIcon(self._PLAY_ICON_PATH))
-            play_btn.setIconSize(QSize(36, 36))
-            play_btn.setFixedSize(44, 44)
-            play_btn.setStyleSheet(
-                "QPushButton { background: transparent; border: none; }"
-                "QPushButton:hover { background: rgba(0,0,0,0.08); border-radius: 22px; }"
-            )
-            play_btn.clicked.connect(
-                lambda checked=False, r=row: self.play_icon_clicked.emit(r)
-            )
-
-            row_h_layout.addStretch(1)
-            row_h_layout.addWidget(play_btn, alignment=Qt.AlignVCenter)
-
-            self._results_layout.addWidget(row_widget)
-
-        # 末尾に伸縮スペーサーを追加
         self._results_layout.addStretch(1)
+
+    def _build_row_widget(self, row: dict) -> _ResultRow:
+        _text_style = "font-size: 12px; color: #000000;"
+        row_widget = _ResultRow(row, self)
+        row_widget.clicked.connect(self._on_row_clicked)
+
+        row_h_layout = QHBoxLayout(row_widget)
+        row_h_layout.setContentsMargins(8, 8, 8, 8)
+        row_h_layout.setSpacing(12)
+
+        # ナンバープレート画像
+        row_h_layout.addWidget(self._make_image_label(row.get("plate_image_path")))
+        # 車両画像
+        row_h_layout.addWidget(self._make_image_label(row.get("vehicle_image_path")))
+        # 画像とテキストの間にスペース
+        row_h_layout.addSpacing(30)
+        # テキスト情報 4行
+        detected_at = row.get("detected_at")
+        if detected_at is not None:
+            dt_str = str(detected_at)
+            date_part = dt_str[:10]    # "YYYY-MM-DD"
+            time_part = dt_str[11:19]  # "HH:MM:SS"
+        else:
+            date_part = "—"
+            time_part = "—"
+
+        camera_id_val = row.get("camera_id")
+        camera_name = self._CAMERA_NAME_MAP.get(
+            camera_id_val, str(camera_id_val) if camera_id_val is not None else "—"
+        )
+        measured_speed = row.get("measured_speed")
+
+        info_widget = QWidget(row_widget)
+        info_layout = QVBoxLayout(info_widget)
+        info_layout.setContentsMargins(0, 4, 0, 4)
+        info_layout.setSpacing(4)
+        for text in [
+            f"日時：{date_part}",
+            f"時間：{time_part}",
+            f"速度：{measured_speed if measured_speed is not None else '—'}km/h",
+            f"カメラ：{camera_name}",
+        ]:
+            lbl = QLabel(text, info_widget)
+            lbl.setStyleSheet(_text_style)
+            info_layout.addWidget(lbl)
+        info_layout.addStretch(1)
+
+        row_h_layout.addWidget(info_widget)
+
+        play_btn = QPushButton(row_widget)
+        play_btn.setIcon(QIcon(self._PLAY_ICON_PATH))
+        play_btn.setIconSize(QSize(36, 36))
+        play_btn.setFixedSize(44, 44)
+        play_btn.setStyleSheet(
+            "QPushButton { background: transparent; border: none; }"
+            "QPushButton:hover { background: rgba(0,0,0,0.08); border-radius: 22px; }"
+        )
+        play_btn.clicked.connect(
+            lambda checked=False, r=row: self.play_icon_clicked.emit(r)
+        )
+
+        row_h_layout.addStretch(1)
+        row_h_layout.addWidget(play_btn, alignment=Qt.AlignVCenter)
+
+        return row_widget
 
     def _on_row_clicked(self, row_data: dict) -> None:
         self.row_clicked.emit(row_data)
 
     def set_sidebar_open(self, is_open: bool) -> None:
-        self._sidebar_open = is_open
+        if self._sidebar_open != is_open:
+            self._sidebar_open = is_open
+            self._populate_results(self._last_rows)
+        else:
+            self._sidebar_open = is_open
 

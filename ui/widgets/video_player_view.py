@@ -23,10 +23,31 @@ from ui_interface import RealtimeDetectionInterface
 
 from PySide6.QtWidgets import (
     QWidget, QSizePolicy, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QSlider, QStackedWidget,
+    QPushButton, QSlider, QStackedWidget, QStyle, QStyleOptionSlider,
 )
 from PySide6.QtCore import Qt, QSize, QTimer, Signal
 from PySide6.QtGui import QImage, QPainter
+
+
+class _ClickableSlider(QSlider):
+    """クリックした位置に直接ジャンプできる QSlider。"""
+
+    def mousePressEvent(self, event) -> None:
+        if event.button() == Qt.LeftButton:
+            opt = QStyleOptionSlider()
+            self.initStyleOption(opt)
+            groove = self.style().subControlRect(
+                QStyle.CC_Slider, opt, QStyle.SC_SliderGroove, self
+            )
+            val = QStyle.sliderValueFromPosition(
+                self.minimum(),
+                self.maximum(),
+                event.pos().x() - groove.x(),
+                groove.width(),
+            )
+            self.setValue(val)
+            self.sliderMoved.emit(val)
+        super().mousePressEvent(event)
 
 
 def _frames_to_hms(frame: int, fps: float) -> str:
@@ -109,17 +130,16 @@ class VideoPlayerView(QWidget):
         self._control_bar.setVisible(False)
         ctrl_layout = QVBoxLayout(self._control_bar)
         ctrl_layout.setContentsMargins(8, 0, 8, 60)
-
-        ctrl_layout.setSpacing(4)
+        ctrl_layout.setSpacing(0)
 
         # 再生日時ラベル（seekbarの上）
         self._datetime_label = QLabel("", self._control_bar)
-        self._datetime_label.setStyleSheet("color: #1a1a1a; font-size: 16px; padding-top: -50px;")
+        self._datetime_label.setStyleSheet("color: #1a1a1a; font-size: 16px; font-weight: bold; padding-top: -60px;")
         self._datetime_label.setVisible(False)
         ctrl_layout.addWidget(self._datetime_label)
 
         # シークバー
-        self._seek_slider = QSlider(Qt.Horizontal, self._control_bar)
+        self._seek_slider = _ClickableSlider(Qt.Horizontal, self._control_bar)
         self._seek_slider.setRange(0, 0)
         self._seek_slider.setStyleSheet(
             """

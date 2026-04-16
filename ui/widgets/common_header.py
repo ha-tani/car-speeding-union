@@ -109,9 +109,9 @@ class CommonHeaderWidget(QWidget):
         section_header.setEnabled(False)
 
         # ==============================
-        # 人物指定画面
+        # カメラ選択画面
         # ==============================
-        self.person_select_action = QAction("人物指定", self)
+        self.person_select_action = QAction("カメラ選択", self)
         self.person_select_action.triggered.connect(
             self.person_select_requested.emit
         )
@@ -123,19 +123,18 @@ class CommonHeaderWidget(QWidget):
             self.person_list_requested.emit
         )
 
-
         menu.addAction(section_header)
         menu.addSeparator()
         # ==============================
-        # 映像から人物指定
+        # 違反車両一覧
         # ==============================
-        self.video_person_select_action = QAction("映像から人物指定", self)
+        self.video_person_select_action = QAction("違反車両一覧", self)
         self.video_person_select_action.triggered.connect(
             self.video_person_select_requested.emit
         )
         menu.addAction(self.video_person_select_action)
         menu.addAction(self.person_select_action)
-        menu.addAction(self.person_list_action)
+   #     menu.addAction(self.person_list_action)
 
         self._menu = menu
 

@@ -12,6 +12,7 @@ from typing import Optional
 
 import psycopg2
 import psycopg2.extras
+import psycopg2.pool
 
 # 上位階層の config.py を参照
 sys.path.append(os.path.join(os.path.dirname(__file__), ".."))
@@ -45,14 +46,32 @@ _DB_CONFIG = {
     "options":         f"-c client_encoding={config.DB_CLIENT_ENCODING}",
 }
 
+# ─────────────────────────────────────────────
+# コネクションプール
+# ─────────────────────────────────────────────
+_pool: Optional[psycopg2.pool.ThreadedConnectionPool] = None
+
+
+def _get_pool() -> psycopg2.pool.ThreadedConnectionPool:
+    """スレッドセーフなコネクションプールを返す（遅延初期化）。"""
+    global _pool
+    if _pool is None or _pool.closed:
+        _pool = psycopg2.pool.ThreadedConnectionPool(
+            minconn=1,
+            maxconn=5,
+            **_DB_CONFIG,
+        )
+        logger.info("DB コネクションプールを初期化しました (maxconn=5)")
+    return _pool
+
 
 # ─────────────────────────────────────────────
 # 接続関数
 # ─────────────────────────────────────────────
 def get_connection() -> psycopg2.extensions.connection:
     """
-    PostgreSQL への接続を返す。
-    通常は get_db_cursor() コンテキストマネージャの利用を推奨。
+    コネクションプールから接続を取得して返す。
+    使用後は必ず返却すること。通常は get_db_cursor() コンテキストマネージャの利用を推奨。
 
     Returns:
         psycopg2 connection オブジェクト
@@ -61,8 +80,8 @@ def get_connection() -> psycopg2.extensions.connection:
         psycopg2.OperationalError: 接続失敗時
     """
     try:
-        conn = psycopg2.connect(**_DB_CONFIG)
-        logger.debug("DB接続成功")
+        conn = _get_pool().getconn()
+        logger.debug("プールから接続を取得")
         return conn
     except psycopg2.OperationalError as e:
         logger.error("DB接続失敗: %s", e)
@@ -110,8 +129,8 @@ def get_db_cursor(
         raise
     finally:
         if conn:
-            conn.close()
-            logger.debug("DB接続をクローズしました")
+            _get_pool().putconn(conn)
+            logger.debug("接続をプールに返却しました")
 
 
 # ─────────────────────────────────────────────

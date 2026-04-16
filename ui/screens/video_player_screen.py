@@ -25,7 +25,7 @@ class VideoPlayerScreen(QWidget):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self._sidebar_open: bool = True
+        self._sidebar_open: bool = False
         self._setup_ui()
 
     def _setup_ui(self) -> None:
@@ -77,16 +77,6 @@ class VideoPlayerScreen(QWidget):
             camera_id=camera_id,
             realtime_detection=realtime_detection,
         )
-
-
-
-
-
-
-
-
-
-
 
     def set_source(self, source: str) -> None:
         """遷移元に応じてパンくずリストを更新する。

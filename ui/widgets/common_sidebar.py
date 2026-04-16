@@ -16,7 +16,7 @@ from PySide6.QtWidgets import (
     QDialog,
     QCalendarWidget,
 )
-from PySide6.QtCore import Qt, QDate, Signal
+from PySide6.QtCore import Qt, QDate, QSize, Signal
 from PySide6.QtGui import QAction, QIcon, QPixmap, QPainter
 
 from widgets.map_view import MapGraphicsView
@@ -142,8 +142,8 @@ class CommonSidebarWidget(QWidget):
 
     def __init__(self, parent=None) -> None:
         super().__init__(parent)
-        self._icon_left: QPixmap | None = None
-        self._icon_right: QPixmap | None = None
+        self._icon_open: QPixmap | None = None
+        self._icon_close: QPixmap | None = None
         self._collapsed_width: int = 48
         self._toggle_button: QPushButton | None = None
         self._content_panel: QWidget | None = None
@@ -182,12 +182,12 @@ class CommonSidebarWidget(QWidget):
             """
         )
 
-        self._icon_left = self._load_sidebar_icon("left")
-        self._icon_right = self._load_sidebar_icon("right")
+        self._icon_close = self._load_sidebar_icon("sidebar_close")
+        self._icon_open = self._load_sidebar_icon("sidebar_open")
 
-        icon_for_width = self._icon_left or self._icon_right
+        icon_for_width = self._icon_close or self._icon_open
         if icon_for_width is not None and not icon_for_width.isNull():
-            self._collapsed_width = max(48, icon_for_width.width() + 16)
+            self._collapsed_width = 48
         else:
             self._collapsed_width = 48
 
@@ -205,14 +205,14 @@ class CommonSidebarWidget(QWidget):
         self._toggle_button.setFlat(True)
         self._toggle_button.setCursor(Qt.PointingHandCursor)
         self._toggle_button.setStyleSheet(
-            "QPushButton { background: #555555; border: none; border-radius: 4px;"
-            " padding: 4px; color: white; font-size: 18px; font-weight: bold; }"
-            "QPushButton:hover { background: #333333; }"
+            "QPushButton { background: transparent; border: none;"
+            " padding: 2px; }"
+            "QPushButton:hover { background: #dddddd; border-radius: 4px; }"
         )
         self._toggle_button.setFixedSize(36, 36)
-        if self._icon_left is not None and not self._icon_left.isNull():
-            self._toggle_button.setIcon(QIcon(self._icon_left))
-            self._toggle_button.setIconSize(self._icon_left.size())
+        if self._icon_close is not None and not self._icon_close.isNull():
+            self._toggle_button.setIcon(QIcon(self._icon_close))
+            self._toggle_button.setIconSize(QSize(28, 28))
         else:
             self._toggle_button.setText("☰")
 
@@ -348,14 +348,15 @@ class CommonSidebarWidget(QWidget):
 
     def set_sidebar_open(self, is_open: bool) -> None:
         if self._toggle_button is not None:
-            pix = self._icon_left if is_open else self._icon_right
+            # 開いているときは「閉じる」アイコン、閉じているときは「開く」アイコン
+            pix = self._icon_close if is_open else self._icon_open
             if pix is not None and not pix.isNull():
                 self._toggle_button.setIcon(QIcon(pix))
-                self._toggle_button.setIconSize(pix.size())
+                self._toggle_button.setIconSize(QSize(28, 28))
                 self._toggle_button.setText("")
             else:
                 self._toggle_button.setIcon(QIcon())
-                self._toggle_button.setText("☰" if is_open else "☰")
+                self._toggle_button.setText("☰")
         if self._content_panel is not None:
             self._content_panel.setVisible(is_open)
 

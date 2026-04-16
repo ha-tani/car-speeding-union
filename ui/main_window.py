@@ -26,7 +26,6 @@ from widgets.loading_overlay import LoadingOverlay
 from screens.video_player_screen import VideoPlayerScreen
 from screens.violating_vehicle_info_screen import SearchResultScreen
 from screens.camera_select_screen import CameraSelectScreen
-from screens.person_list_screen import PersonListScreen
 from search_video import find_and_clip_video, find_and_clip_video_centered, find_and_clip_video_range
 
 
@@ -96,16 +95,11 @@ class MainWindow(QMainWindow):
         self.person_select_screen = CameraSelectScreen(self)
         self.screen_stack.addWidget(self.person_select_screen)
 
-        self.person_list_screen = PersonListScreen(self)
-        self.screen_stack.addWidget(self.person_list_screen)
-
         # ===== シグナル接続（画面遷移） =====
         # ハンバーガーメニュー → 違反車両一覧
         self.header.video_person_select_requested.connect(self._show_search_result_screen)
         # ハンバーガーメニュー → カメラ選択画面
         self.header.person_select_requested.connect(self._on_person_select_requested)
-        # ハンバーガーメニュー → 違反車詳細画面(今だけ)
-        self.header.person_list_requested.connect(self._show_camera_select_screen)
 
         # 映像プレイヤー画面 → 検索結果画面
         self.video_player_screen.to_search_result_requested.connect(self._show_search_result_screen)
@@ -119,8 +113,6 @@ class MainWindow(QMainWindow):
         self.person_select_screen.back_to_person_select_requested.connect(self._show_search_result_screen)
         # 人物指定画面 → 映像プレイヤー画面へ
         self.person_select_screen.video_play_requested.connect(self._on_video_play_requested)
-        # 人物一覧画面 → 戻る
-        self.person_list_screen.back_requested.connect(self._show_camera_select_screen)
 
         # コンボボックス連動
         self.sidebar.map_combobox.currentIndexChanged.connect(self._on_sidebar_camera_changed)
@@ -137,6 +129,7 @@ class MainWindow(QMainWindow):
     # 画面遷移
     # -----------------------------------
     def _show_camera_select_screen(self) -> None:
+        self._sidebar_visible = False
         self._apply_sidebar_visibility()
         self.screen_stack.setCurrentWidget(self.video_player_screen)
         self._set_all_cameras_item_enabled(True)
@@ -150,11 +143,6 @@ class MainWindow(QMainWindow):
         self._apply_sidebar_visibility()
         self.screen_stack.setCurrentWidget(self.person_select_screen)
         self._set_all_cameras_item_enabled(False)
-
-    def _on_person_list_requested(self) -> None:
-        self._apply_sidebar_visibility()
-        self.screen_stack.setCurrentWidget(self.person_list_screen)
-        self._set_all_cameras_item_enabled(True)
 
     def _on_check_videos_clicked(self) -> None:
         """サイドバーの「映像を確認する」ボタン押下。"""
@@ -182,6 +170,7 @@ class MainWindow(QMainWindow):
             realtime_detection=True,
         )
         self.video_player_screen.set_source("person_select")
+        self._sidebar_visible = False
         self._apply_sidebar_visibility()
         self.screen_stack.setCurrentWidget(self.video_player_screen)
 
@@ -274,6 +263,7 @@ class MainWindow(QMainWindow):
         )
         if source:
             self.video_player_screen.set_source(source)
+        self._sidebar_visible = False
         self._apply_sidebar_visibility()
         self.screen_stack.setCurrentWidget(self.video_player_screen)
 

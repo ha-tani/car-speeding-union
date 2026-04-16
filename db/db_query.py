@@ -18,7 +18,7 @@ def get_camera_by_name(camera_name: str):
     cameras テーブルからカメラ名でカメラ情報を取得する。
     """
     sql = """
-        SELECT camera_id, road_range, road_width, road_depth
+        SELECT camera_id, road_range, road_width, road_depth, speed_limit
         FROM cameras
         WHERE camera_name = %s
     """
@@ -40,6 +40,7 @@ def get_camera_by_name(camera_name: str):
         "road_range": road_range,
         "road_width": float(row["road_width"]) if row["road_width"] is not None else None,
         "road_depth": float(row["road_depth"]) if row["road_depth"] is not None else None,
+        "speed_limit": float(row["speed_limit"]) if row["speed_limit"] is not None else None,
     }
 
 # 後方互換エイリアス
@@ -261,3 +262,94 @@ def update_event_vehicle_id(event_id: int, vehicle_id: int):
     """
     with get_db_cursor() as cur:
         cur.execute(sql, (vehicle_id, event_id))
+
+
+def register_violation(
+    detected_at,
+    measured_speed,
+    speed_limit,
+    excess_speed,
+    track_id,
+    camera_id=None,
+    vehicle_type=None,
+    plate_number=None,
+    vehicle_image_path=None,
+    plate_image_path=None,
+) -> tuple[int, int]:
+    """
+    速度違反の登録を1トランザクションで実行する。
+
+    1) vehicle_violation_events に INSERT
+    2) vehicles に UPSERT
+    3) vehicle_violation_events.vehicle_id を UPDATE
+
+    Returns
+    -------
+    (event_id, vehicle_id) : tuple[int, int]
+    """
+    with get_db_cursor() as cur:
+        # Step 1: INSERT event
+        cur.execute(
+            """
+            INSERT INTO vehicle_violation_events (
+                vehicle_id, camera_id, detected_at,
+                measured_speed, speed_limit, excess_speed,
+                vehicle_color, vehicle_type, plate_number,
+                vehicle_image_path, plate_image_path,
+                track_id, status, note
+            ) VALUES (
+                NULL, %s, %s,
+                %s, %s, %s,
+                NULL, %s, %s,
+                %s, %s,
+                %s, 'new', NULL
+            )
+            RETURNING event_id
+            """,
+            (
+                camera_id, detected_at,
+                measured_speed, speed_limit, excess_speed,
+                vehicle_type, plate_number,
+                vehicle_image_path, plate_image_path,
+                str(track_id),
+            ),
+        )
+        event_id = cur.fetchone()["event_id"]
+
+        # Step 2: UPSERT vehicle
+        if plate_number:
+            cur.execute(
+                """
+                INSERT INTO vehicles (
+                    plate_number, vehicle_type, violation_count,
+                    first_violation_at, last_violation_at, created_at, updated_at
+                ) VALUES (%s, %s, 1, %s, %s, NOW(), NOW())
+                ON CONFLICT (plate_number) DO UPDATE SET
+                    violation_count    = vehicles.violation_count + 1,
+                    last_violation_at  = EXCLUDED.last_violation_at,
+                    vehicle_type       = COALESCE(EXCLUDED.vehicle_type, vehicles.vehicle_type),
+                    updated_at         = NOW()
+                RETURNING vehicle_id
+                """,
+                (plate_number, vehicle_type, detected_at, detected_at),
+            )
+        else:
+            cur.execute(
+                """
+                INSERT INTO vehicles (
+                    plate_number, vehicle_type, violation_count,
+                    first_violation_at, last_violation_at, created_at, updated_at
+                ) VALUES (NULL, %s, 1, %s, %s, NOW(), NOW())
+                RETURNING vehicle_id
+                """,
+                (vehicle_type, detected_at, detected_at),
+            )
+        vehicle_id = cur.fetchone()["vehicle_id"]
+
+        # Step 3: UPDATE event with vehicle_id
+        cur.execute(
+            "UPDATE vehicle_violation_events SET vehicle_id = %s WHERE event_id = %s",
+            (vehicle_id, event_id),
+        )
+
+    return event_id, vehicle_id
