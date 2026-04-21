@@ -4,6 +4,8 @@
 """
 from pathlib import Path
 
+import re
+
 from PySide6.QtWidgets import (
     QWidget,
     QVBoxLayout,
@@ -204,14 +206,14 @@ class SearchResultScreen(QWidget):
 
         # 制限速度
         self.speed_combo = QComboBox(self)
-        self.speed_combo.setFixedWidth(120)
+        self.speed_combo.setFixedWidth(200)
         self.speed_combo.setFixedHeight(40)
         self.speed_combo.setStyleSheet(_combo_style)
         self.speed_combo.addItem("制限速度")
-        self.speed_combo.addItem("5 km/h")
-        self.speed_combo.addItem("35 km/h")
-        self.speed_combo.addItem("45 km/h")
-        self.speed_combo.setCurrentText("5 km/h")
+        self.speed_combo.addItem("制限速度：5 km/h")
+        self.speed_combo.addItem("制限速度：25 km/h")
+        self.speed_combo.addItem("制限速度：35 km/h")
+        self.speed_combo.setCurrentText("制限速度：5 km/h")
         row2.addWidget(self.speed_combo)
 
         # 検索ボタン
@@ -277,11 +279,12 @@ class SearchResultScreen(QWidget):
         speed_text = self.speed_combo.currentText()
         speed_limit: float | None = None
         if speed_text != "制限速度":
-            numeric_part = speed_text.split()[0]      # "35 km/h" → "35"
-            try:
-                speed_limit = float(numeric_part)
-            except ValueError:
-                print(f"[検索] 制限速度の解析に失敗しました: {speed_text}")
+            numeric_part = re.search(r"\d+", speed_text)
+            if numeric_part:
+                try:
+                    speed_limit = float(numeric_part.group())
+                except ValueError:
+                    print(f"[検索] 制限速度の解析に失敗しました: {speed_text}")
                 return
 
         print(

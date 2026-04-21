@@ -117,6 +117,7 @@ class MainWindow(QMainWindow):
         # コンボボックス連動
         self.sidebar.map_combobox.currentIndexChanged.connect(self._on_sidebar_camera_changed)
         self.search_screen.camera_combo.currentIndexChanged.connect(self._on_result_camera_changed)
+        self.person_select_screen.camera_combo_changed.connect(self._on_person_select_camera_changed)
 
         # 検索結果の再生ボタン
         self.search_screen.play_icon_clicked.connect(self._on_play_icon_clicked)
@@ -198,7 +199,9 @@ class MainWindow(QMainWindow):
         self.search_screen.camera_combo.blockSignals(True)
         self.search_screen.camera_combo.setCurrentIndex(index)
         self.search_screen.camera_combo.blockSignals(False)
-        self.person_select_screen.camera_location_title.setText(f"■{text}")
+        self.person_select_screen.camera_combo.blockSignals(True)
+        self.person_select_screen.camera_combo.setCurrentIndex(index)
+        self.person_select_screen.camera_combo.blockSignals(False)
 
     @Slot(int)
     def _on_result_camera_changed(self, index: int) -> None:
@@ -208,7 +211,21 @@ class MainWindow(QMainWindow):
         self.sidebar.map_combobox.setCurrentIndex(index)
         self.sidebar.map_combobox.blockSignals(False)
         self.sidebar.map_view.select_camera(text)
-        self.person_select_screen.camera_location_title.setText(f"■{text}")
+        self.person_select_screen.camera_combo.blockSignals(True)
+        self.person_select_screen.camera_combo.setCurrentIndex(index)
+        self.person_select_screen.camera_combo.blockSignals(False)
+
+    @Slot(int)
+    def _on_person_select_camera_changed(self, index: int) -> None:
+        """カメラ選択画面のcamera_combo変更 → 他ウィジェットに同期。"""
+        text = self.person_select_screen.camera_combo.currentText()
+        self.sidebar.map_combobox.blockSignals(True)
+        self.sidebar.map_combobox.setCurrentIndex(index)
+        self.sidebar.map_combobox.blockSignals(False)
+        self.sidebar.map_view.select_camera(text)
+        self.search_screen.camera_combo.blockSignals(True)
+        self.search_screen.camera_combo.setCurrentIndex(index)
+        self.search_screen.camera_combo.blockSignals(False)
 
     # -----------------------------------
     # 再生ボタン処理（ffmpeg切り取り → 動画再生）
