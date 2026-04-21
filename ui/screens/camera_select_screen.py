@@ -128,7 +128,7 @@ class CameraSelectScreen(QWidget):
         self.camera_combo.setMinimumWidth(200)
         self.camera_combo.setStyleSheet(_combo_style)
         self.camera_combo.addItem("--- カメラを選択 ---")
-        for name in ["カメラA", "カメラB", "カメラC", "カメラD", "カメラE", "カメラF", "カメラG", "カメラH"]:
+        for name in ["カメラA", "カメラB", "カメラC", "カメラD", "カメラE", "カメラF", "カメラG", "カメラH", "カメラI"]:
             self.camera_combo.addItem(name)
         _all_item = self.camera_combo.model().item(0)
         _all_item.setFlags(_all_item.flags() & ~(Qt.ItemIsEnabled | Qt.ItemIsSelectable))
@@ -196,7 +196,9 @@ class CameraSelectScreen(QWidget):
         bg_layout.addStretch(6)
 
     # --- helpers ---
-    _CAMERA_ID_MAP: dict[str, int] = {"カメラA": 1, "カメラB": 2, "カメラC": 3, "カメラD": 4, "カメラE": 5, "カメラF": 6, "カメラG": 7, "カメラH": 8}
+    _CAMERA_ID_MAP: dict[str, int] = {"カメラA": 1, "カメラB": 2, "カメラC": 3, 
+                                      "カメラD": 4, "カメラE": 5, "カメラF": 6,
+                                        "カメラG": 7, "カメラH": 8, "カメラI": 9}
 
     def _on_check_video_clicked(self) -> None:
         """「映像を確認する」ボタン押下：日時とカメラIDをシグナルで発火する。"""

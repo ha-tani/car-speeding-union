@@ -154,6 +154,7 @@ class MapGraphicsView(QGraphicsView):
                     ("orange_6.png", "red_6.png", 345, 145, "カメラF"),
                     ("orange_6.png", "red_6.png", 365, 145, "カメラG"),
                     ("orange_6.png", "red_6.png", 385, 145, "カメラH"),
+                    ("orange_10.png", "red_10.png", 405, 145, "カメラI")
                 ]
                 
                 self._camera_icons = []

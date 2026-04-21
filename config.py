@@ -115,7 +115,7 @@ DB_CLIENT_ENCODING = "UTF8"
 # -------------------------
 # パイプライン設定
 # -------------------------
-PIPELINE_MAX_WORKERS = 2  # 同時に解析する動画の最大数（2以下でも実行可能）
+PIPELINE_MAX_WORKERS = 5  # 同時に解析する動画の最大数（2以下でも実行可能）
 CAPTURE_DIR_CAR = BASE_DIR / "image" / "car"      # 車両キャプチャ保存先
 CAPTURE_DIR_PLATE = BASE_DIR / "image" / "plate"   # プレートキャプチャ保存先
 
