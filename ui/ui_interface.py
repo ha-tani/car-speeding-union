@@ -134,3 +134,8 @@ class RealtimeDetectionInterface:
         """検出パイプラインをリセットする。"""
         self._car_detector = None
         self._speed_tracker = None
+
+    def reset_tracker(self) -> None:
+        """SpeedTracker のトラッキング状態のみリセットする (シーク時用)。"""
+        if self._speed_tracker is not None:
+            self._speed_tracker.reset()

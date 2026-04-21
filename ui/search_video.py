@@ -4,7 +4,7 @@
 
 find_and_clip_video(detected_at, camera_id) -> str | None
   detected_at   : datetime または "YYYY-MM-DD HH:MM:SS" 形式の文字列
-  camera_id     : int (1=cameraA, 2=cameraB, 3=cameraC)
+  camera_id     : int (1=cameraA, 2=cameraB, 3=cameraC, 4=cameraD, 5=cameraE)
   戻り値        : ffmpeg で切り出した一時ファイルのパス。失敗時は None。
 """
 from __future__ import annotations
@@ -22,8 +22,8 @@ log = logging.getLogger(__name__)
 _BASE_DIR: Path = Path(__file__).resolve().parent.parent
 _FFMPEG_EXE: Path = _BASE_DIR / "ffmpeg" / "ffmpeg" / "bin" / "ffmpeg.exe"
 _VIDEOS_DIR: Path = _BASE_DIR / "videos"
-_CAMERA_FOLDER_MAP: dict[int, str] = {1: "cameraA", 2: "cameraB", 3: "cameraC"}
-_VIDEO_PATTERN = re.compile(r"^(\d{8}_\d{6})\.(avi|mp4)$", re.IGNORECASE)
+_CAMERA_FOLDER_MAP: dict[int, str] = {1: "cameraA", 2: "cameraB", 3: "cameraC", 4: "cameraD", 5: "cameraE", 6: "cameraF", 7: "cameraG" , 8: "cameraH"  }
+_VIDEO_PATTERN = re.compile(r"^(\d{8}_\d{6})\.(avi|mp4|mov)$", re.IGNORECASE)
 
 
 def find_and_clip_video(

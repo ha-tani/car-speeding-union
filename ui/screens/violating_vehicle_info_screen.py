@@ -185,6 +185,12 @@ class SearchResultScreen(QWidget):
         self.camera_combo.addItem("カメラA")
         self.camera_combo.addItem("カメラB")
         self.camera_combo.addItem("カメラC")
+        self.camera_combo.addItem("カメラD")
+        self.camera_combo.addItem("カメラE")
+        self.camera_combo.addItem("カメラF")
+        self.camera_combo.addItem("カメラG")
+        self.camera_combo.addItem("カメラH")
+        
         row1.addWidget(self.camera_combo)
 
         row1.addStretch(1)
@@ -242,7 +248,11 @@ class SearchResultScreen(QWidget):
         "カメラA": 1,
         "カメラB": 2,
         "カメラC": 3,
-
+        "カメラD": 4,
+        "カメラE": 5,
+        "カメラF": 6,
+        "カメラG": 7,
+        "カメラH": 8,
     }
 
     def _on_search_clicked(self) -> None:
@@ -299,7 +309,7 @@ class SearchResultScreen(QWidget):
     # ─────────────────────────────────────────────
     # camera_id → カメラ名 マッピング
     # ─────────────────────────────────────────────
-    _CAMERA_NAME_MAP: dict[int, str] = {1: "カメラA", 2: "カメラB", 3: "カメラC"}
+    _CAMERA_NAME_MAP: dict[int, str] = {1: "カメラA", 2: "カメラB", 3: "カメラC", 4: "カメラD", 5: "カメラE", 6: "カメラF" , 7: "カメラG", 8: "カメラH" }
 
     def _clear_results(self) -> None:
         layout = self._results_layout
@@ -333,8 +343,8 @@ class SearchResultScreen(QWidget):
             for w in row_widgets:
                 self._results_layout.addWidget(w)
         else:
-            # 2列: 2つずつ横並び
-            for i in range(0, len(row_widgets), 2):
+            # 3列: 3つずつ横並び
+            for i in range(0, len(row_widgets), 3):
                 pair = QWidget()
                 pair_layout = QHBoxLayout(pair)
                 pair_layout.setContentsMargins(0, 0, 0, 0)
@@ -342,6 +352,10 @@ class SearchResultScreen(QWidget):
                 pair_layout.addWidget(row_widgets[i], 1)
                 if i + 1 < len(row_widgets):
                     pair_layout.addWidget(row_widgets[i + 1], 1)
+                else:
+                    pair_layout.addStretch(1)
+                if i + 2 < len(row_widgets):
+                    pair_layout.addWidget(row_widgets[i + 2], 1)
                 else:
                     pair_layout.addStretch(1)
                 self._results_layout.addWidget(pair)

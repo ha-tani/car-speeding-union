@@ -148,8 +148,12 @@ class MapGraphicsView(QGraphicsView):
                     ("orange_6.png", "red_6.png", 246, 145, "カメラA"),
                     # ↓ MAP上にアイコンを追加する場合はここに記載
                     ("orange_6.png", "red_6.png", 265, 145, "カメラB"),
-                    # ↓ MAP上にアイコンを追加する場合はここに記載
                     ("orange_6.png", "red_6.png", 285, 145, "カメラC"),
+                    ("orange_6.png", "red_6.png", 305, 145, "カメラD"),
+                    ("orange_6.png", "red_6.png", 325, 145, "カメラE"),
+                    ("orange_6.png", "red_6.png", 345, 145, "カメラF"),
+                    ("orange_6.png", "red_6.png", 365, 145, "カメラG"),
+                    ("orange_6.png", "red_6.png", 385, 145, "カメラH"),
                 ]
                 
                 self._camera_icons = []

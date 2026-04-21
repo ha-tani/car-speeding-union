@@ -18,6 +18,7 @@ if str(_PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(_PROJECT_ROOT))
 
 import config
+from video_utils import open_video_capture
 
 from ui_interface import RealtimeDetectionInterface
 
@@ -82,13 +83,8 @@ class _VideoDisplayWidget(QWidget):
     def paintEvent(self, event) -> None:
         painter = QPainter(self)
         if self._image is not None:
-            # ウィジェット自体がアスペクト比に合わせてサイズ制御されるため IgnoreAspectRatio で描画
-            scaled = self._image.scaled(
-                self.width(), self.height(),
-                Qt.IgnoreAspectRatio,
-                Qt.SmoothTransformation,
-            )
-            painter.drawImage(0, 0, scaled)
+            # フレームは _update_frame で表示サイズに事前リサイズ済みのためスケーリング不要
+            painter.drawImage(0, 0, self._image)
         painter.end()
 
 
@@ -134,7 +130,7 @@ class VideoPlayerView(QWidget):
 
         # 再生日時ラベル（seekbarの上）
         self._datetime_label = QLabel("", self._control_bar)
-        self._datetime_label.setStyleSheet("color: #1a1a1a; font-size: 16px; font-weight: bold; padding-top: -60px;")
+        self._datetime_label.setStyleSheet("color: #1a1a1a; font-size: 16px; font-weight: bold; padding-top: -50px;")
         self._datetime_label.setVisible(False)
         ctrl_layout.addWidget(self._datetime_label)
 
@@ -235,7 +231,7 @@ class VideoPlayerView(QWidget):
             self._cap.release()
             self._cap = None
 
-        cap = cv2.VideoCapture(path)
+        cap = open_video_capture(path)
         if not cap.isOpened():
             self._placeholder.setText(f"動画を開けませんでした:\n{path}")
             self._video_stack.setCurrentIndex(0)
@@ -316,8 +312,12 @@ class VideoPlayerView(QWidget):
 
         self._update_time_label(current_frame)
 
-        # BGR → RGB 変換して QImage に変換し QPainter で描画
+        # BGR → RGB 変換してからウィジェット表示サイズへ事前リサイズ（paintEvent でのスケーリングを回避）
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+        dw = self._video_widget.width()
+        dh = self._video_widget.height()
+        if dw > 0 and dh > 0 and (frame_rgb.shape[1] != dw or frame_rgb.shape[0] != dh):
+            frame_rgb = cv2.resize(frame_rgb, (dw, dh), interpolation=cv2.INTER_LINEAR)
         h, w, ch = frame_rgb.shape
         q_img = QImage(frame_rgb.data, w, h, ch * w, QImage.Format_RGB888)
         self._video_widget.set_image(q_img.copy())
@@ -328,12 +328,20 @@ class VideoPlayerView(QWidget):
         self._cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
         self._update_time_label(frame_number)
 
+        # シーク時にトラッキング状態をリセット (速度計算の汚染を防止)
+        if self._detection_iface is not None:
+            self._detection_iface.reset_tracker()
+
         # 一時停止中でもシーク先のフレームを即座に表示する
         if not self._is_playing:
             ret, frame = self._cap.read()
             if ret:
                 frame = self._apply_realtime_overlay(frame)
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                dw = self._video_widget.width()
+                dh = self._video_widget.height()
+                if dw > 0 and dh > 0 and (frame_rgb.shape[1] != dw or frame_rgb.shape[0] != dh):
+                    frame_rgb = cv2.resize(frame_rgb, (dw, dh), interpolation=cv2.INTER_LINEAR)
                 h, w, ch = frame_rgb.shape
                 q_img = QImage(frame_rgb.data, w, h, ch * w, QImage.Format_RGB888)
                 self._video_widget.set_image(q_img.copy())

@@ -4,6 +4,7 @@
 """
 from __future__ import annotations
 
+import re
 from typing import Optional
 
 from PySide6.QtWidgets import (
@@ -133,20 +134,26 @@ class CameraSelectScreen(QWidget):
         self.start_combo.setFixedWidth(120)
         self.start_combo.setFixedHeight(40)
         self.start_combo.setStyleSheet(_combo_style)
+        self.start_combo.setEditable(True)
         populate_time_combo(self.start_combo)
+        self.start_combo.currentTextChanged.connect(self._on_start_time_changed)
         dt_row.addWidget(self.start_combo)
 
         time_label = QLabel("～", card)
         time_label.setStyleSheet("font-size: 12px; border: none; background: transparent;")
         dt_row.addWidget(time_label)
 
-        self.end_combo = QComboBox(dt_row_widget)
-        self.end_combo.setFixedWidth(120)
-        self.end_combo.setFixedHeight(40)
-        self.end_combo.setStyleSheet(_combo_style)
-        populate_time_combo(self.end_combo)
-        self.end_combo.setCurrentText("00:30")
-        dt_row.addWidget(self.end_combo)
+        self.end_edit = QLineEdit(dt_row_widget)
+        self.end_edit.setFixedWidth(120)
+        self.end_edit.setFixedHeight(40)
+        self.end_edit.setReadOnly(True)
+        self.end_edit.setAlignment(Qt.AlignCenter)
+        self.end_edit.setStyleSheet(
+            "QLineEdit { font-size: 14px; background-color: #f0f0f0; color: #555555;"
+            " border: 1px solid #c0c0c0; border-radius: 4px; padding: 4px 8px; }"
+        )
+        self.end_edit.setText("00:30")
+        dt_row.addWidget(self.end_edit)
 
         dt_row.addStretch(1)
         left_layout.addWidget(dt_row_widget)
@@ -178,7 +185,7 @@ class CameraSelectScreen(QWidget):
         bg_layout.addStretch(6)
 
     # --- helpers ---
-    _CAMERA_ID_MAP: dict[str, int] = {"カメラA": 1, "カメラB": 2, "カメラC": 3}
+    _CAMERA_ID_MAP: dict[str, int] = {"カメラA": 1, "カメラB": 2, "カメラC": 3, "カメラD": 4, "カメラE": 5, "カメラF": 6, "カメラG": 7, "カメラH": 8 }
 
     def _on_check_video_clicked(self) -> None:
         """「映像を確認する」ボタン押下：日時とカメラIDをシグナルで発火する。"""
@@ -193,8 +200,8 @@ class CameraSelectScreen(QWidget):
         start_at = f"{date_str} {start_text}:00"     # "2026-04-08 10:30:00"
 
         # 終了時間取得
-        end_text = self.end_combo.currentText()      # e.g. "11:00"
-        end_at = f"{date_str} {end_text}:00"         # "2026-04-08 11:00:00"
+        end_text = self.end_edit.text()          # e.g. "11:00"
+        end_at = f"{date_str} {end_text}:00"     # "2026-04-08 11:00:00"
 
         # カメラ名取得（"■カメラA" → "カメラA"）→ camera_id
         label_text = self.camera_location_title.text()  # e.g. "■カメラA"
@@ -213,6 +220,32 @@ class CameraSelectScreen(QWidget):
     def _apply_input_style(self, edit: QLineEdit) -> None:
         edit.setFixedHeight(36)
         edit.setStyleSheet("QLineEdit { padding: 6px; font-size: 14px; }")
+
+    def _on_start_time_changed(self, text: str) -> None:
+        """start_comboの入力値に応じてバリデーションしend_editを自動更新する。"""
+        line_edit = self.start_combo.lineEdit()
+        m = re.fullmatch(r'(\d{1,2}):(\d{2})', text.strip())
+        invalid_style = (
+            "QLineEdit { font-size: 14px; border: 1px solid #e53935;"
+            " border-radius: 4px; padding: 4px 8px; background-color: #fff0f0; }"
+        )
+        if not m:
+            if line_edit:
+                line_edit.setStyleSheet(invalid_style)
+            return
+        h, mi = int(m.group(1)), int(m.group(2))
+        if h > 24 or mi > 59 or (h == 24 and mi > 0):
+            if line_edit:
+                line_edit.setStyleSheet(invalid_style)
+            return
+        # 有効 — エラー表示をリセット
+        if line_edit:
+            line_edit.setStyleSheet("")
+        total_min = h * 60 + mi + 30
+        if total_min > 24 * 60:
+            total_min = 24 * 60
+        eh, em = divmod(total_min, 60)
+        self.end_edit.setText(f"{eh:02d}:{em:02d}")
 
     def set_sidebar_open(self, is_open: bool) -> None:
         self._sidebar_open = is_open
