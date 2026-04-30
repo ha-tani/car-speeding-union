@@ -212,8 +212,9 @@ class SearchResultScreen(QWidget):
         self.speed_combo.setStyleSheet(_combo_style)
         self.speed_combo.addItem("制限速度")
         self.speed_combo.addItem("制限速度：5 km/h")
-        self.speed_combo.addItem("制限速度：25 km/h")
-        self.speed_combo.addItem("制限速度：35 km/h")
+        self.speed_combo.addItem("制限速度：20 km/h")
+        self.speed_combo.addItem("制限速度：30 km/h")
+        self.speed_combo.addItem("制限速度：40 km/h")
         self.speed_combo.setCurrentText("制限速度：5 km/h")
         row2.addWidget(self.speed_combo)
 

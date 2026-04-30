@@ -13,7 +13,8 @@ VIDEO_DIR = BASE_DIR / "car_speeding_back" / "video"       # 動画ルートフ�
 
 # TensorRT設定
 USE_TENSORRT = True  # True: TensorRTエンジン使用, False: PyTorchモデル使用
-TENSORRT_BATCH_SIZE = 512  # TensorRTバッチ推論のバッチサイズ
+TENSORRT_BATCH_SIZE = 128  # TensorRTバッチ推論のバッチサイズ
+YOLO_DETECT_BATCH_SIZE = 16  # フレームループで一度に推論するフレーム数 (1=逐次, 大きいほどGPU効率↑)
 YOLO_ENGINE_PATH = MODELS_DIR / "yolov8s.engine"
 YOLO_PLATE_ENGINE_PATH = MODELS_DIR / "yolov8n-np.engine"
 YOLO_MODEL_PATH = MODELS_DIR / "yolov8s.pt"
@@ -71,7 +72,7 @@ MAX_DISPLAY_HEIGHT = 720
 SPEED_SMOOTHING_WINDOW = 10   # 速度スムージングのフレーム数
 SPEED_HISTORY_SIZE = 20       # 位置履歴の保持フレーム数
 SPEED_MIN_THRESHOLD_KMH = 3.0 # この速度以下は停車とみなす [km/h]
-SPEED_MIN_PIXEL_MOVEMENT = 3.0 # このピクセル以下の移動はノイズとみなす
+SPEED_MIN_PIXEL_MOVEMENT = 2.0 # このピクセル以下の移動はノイズとみなす
 SPEED_MAX_LIMIT = 80.0 # 速度上限 [km/h] (これ以上は異常値とみなしBBOX非表示)
 SPEED_LIMIT = 25.0 # 速度制限 [km/h] (DB未設定時のフォールバック値)
 TRACK_MIN_AGE_FRAMES = 6     # この検出フレーム数未満のトラックは速度計算しない
@@ -85,6 +86,7 @@ BYTE_TRACK_IOU_THRESHOLD = 0.15   # 1st association の IoU 閾値
 BYTE_TRACK_HIGH_THRESH = 0.5      # 高信頼度検出の闾値
 BYTE_TRACK_LOW_THRESH = 0.1       # 低信頼度検出の下限 (2nd association 用)
 BYTE_TRACK_SECOND_IOU_THRESH = 0.3  # 2nd association の IoU 閾値
+BYTE_TRACK_USE_GPU = False         # True: GPU版ByteTrackerを使用 (USE_GPU=True の場合のみ有効)
 
 # -------------------------
 # 静止車両フィルタ設定

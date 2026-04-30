@@ -83,8 +83,13 @@ class _VideoDisplayWidget(QWidget):
     def paintEvent(self, event) -> None:
         painter = QPainter(self)
         if self._image is not None:
-            # フレームは _update_frame で表示サイズに事前リサイズ済みのためスケーリング不要
-            painter.drawImage(0, 0, self._image)
+            # ウィジェット自体がアスペクト比に合わせてサイズ制御されるため IgnoreAspectRatio で描画
+            scaled = self._image.scaled(
+                self.width(), self.height(),
+                Qt.IgnoreAspectRatio,
+                Qt.SmoothTransformation,
+            )
+            painter.drawImage(0, 0, scaled)
         painter.end()
 
 
@@ -312,12 +317,8 @@ class VideoPlayerView(QWidget):
 
         self._update_time_label(current_frame)
 
-        # BGR → RGB 変換してからウィジェット表示サイズへ事前リサイズ（paintEvent でのスケーリングを回避）
+        # BGR → RGB 変換して QImage に変換し QPainter で描画
         frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-        dw = self._video_widget.width()
-        dh = self._video_widget.height()
-        if dw > 0 and dh > 0 and (frame_rgb.shape[1] != dw or frame_rgb.shape[0] != dh):
-            frame_rgb = cv2.resize(frame_rgb, (dw, dh), interpolation=cv2.INTER_LINEAR)
         h, w, ch = frame_rgb.shape
         q_img = QImage(frame_rgb.data, w, h, ch * w, QImage.Format_RGB888)
         self._video_widget.set_image(q_img.copy())
@@ -338,10 +339,6 @@ class VideoPlayerView(QWidget):
             if ret:
                 frame = self._apply_realtime_overlay(frame)
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                dw = self._video_widget.width()
-                dh = self._video_widget.height()
-                if dw > 0 and dh > 0 and (frame_rgb.shape[1] != dw or frame_rgb.shape[0] != dh):
-                    frame_rgb = cv2.resize(frame_rgb, (dw, dh), interpolation=cv2.INTER_LINEAR)
                 h, w, ch = frame_rgb.shape
                 q_img = QImage(frame_rgb.data, w, h, ch * w, QImage.Format_RGB888)
                 self._video_widget.set_image(q_img.copy())
