@@ -22,7 +22,7 @@ log = logging.getLogger(__name__)
 _BASE_DIR: Path = Path(__file__).resolve().parent.parent
 _FFMPEG_EXE: Path = _BASE_DIR / "ffmpeg" / "ffmpeg" / "bin" / "ffmpeg.exe"
 _VIDEOS_DIR: Path = _BASE_DIR / "videos"
-_CAMERA_FOLDER_MAP: dict[int, str] = {1: "cameraA", 2: "cameraB", 3: "cameraC", 4: "cameraD", 5: "cameraE", 6: "cameraF", 7: "cameraG" , 8: "cameraH" , 9: "cameraI" }
+_CAMERA_FOLDER_MAP: dict[int, str] = {1: "cameraA", 2: "cameraB", 3: "cameraC", 4: "cameraD", 5: "cameraE", 6: "cameraF", 7: "cameraG" , 8: "cameraH" , 9: "cameraI", 10: "cameraJ" }
 _VIDEO_PATTERN = re.compile(r"^(\d{8}_\d{6})\.(avi|mp4|mov)$", re.IGNORECASE)
 
 

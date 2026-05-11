@@ -24,21 +24,21 @@ from util import DateInputWithCalendar, populate_time_combo
 
 
 
-class _SquareBlackFrame(QFrame):
-    def __init__(self, parent: QWidget | None = None) -> None:
-        super().__init__(parent)
-        self._sidebar_open: bool = True
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        self.setFixedSize(200, 200)
-        self.setStyleSheet(
-            """
-            QFrame {
-                background-color: #000000;
-                border: 1px solid #333333;
-                border-radius: 0px;
-            }
-            """
-        )
+# class _SquareBlackFrame(QFrame):
+#     def __init__(self, parent: QWidget | None = None) -> None:
+#         super().__init__(parent)
+#         self._sidebar_open: bool = True
+#         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+#         self.setFixedSize(200, 200)
+#         self.setStyleSheet(
+#             """
+#             QFrame {
+#                 background-color: #000000;
+#                 border: 1px solid #333333;
+#                 border-radius: 0px;
+#             }
+#             """
+#         )
 
 
 class CameraSelectScreen(QWidget):
@@ -128,7 +128,7 @@ class CameraSelectScreen(QWidget):
         self.camera_combo.setMinimumWidth(200)
         self.camera_combo.setStyleSheet(_combo_style)
         self.camera_combo.addItem("--- カメラを選択 ---")
-        for name in ["カメラA", "カメラB", "カメラC", "カメラD", "カメラE", "カメラF", "カメラG", "カメラH", "カメラI"]:
+        for name in ["カメラA", "カメラB", "カメラC", "カメラD", "カメラE", "カメラF", "カメラG", "カメラH", "カメラI", "カメラJ"]:
             self.camera_combo.addItem(name)
         _all_item = self.camera_combo.model().item(0)
         _all_item.setFlags(_all_item.flags() & ~(Qt.ItemIsEnabled | Qt.ItemIsSelectable))
@@ -198,7 +198,7 @@ class CameraSelectScreen(QWidget):
     # --- helpers ---
     _CAMERA_ID_MAP: dict[str, int] = {"カメラA": 1, "カメラB": 2, "カメラC": 3, 
                                       "カメラD": 4, "カメラE": 5, "カメラF": 6,
-                                        "カメラG": 7, "カメラH": 8, "カメラI": 9}
+                                        "カメラG": 7, "カメラH": 8, "カメラI": 9, "カメラJ": 10}
 
     def _on_check_video_clicked(self) -> None:
         """「映像を確認する」ボタン押下：日時とカメラIDをシグナルで発火する。"""
@@ -257,7 +257,7 @@ class CameraSelectScreen(QWidget):
         return ""
 
     def _apply_start_time_error(self, error_msg: str) -> None:
-        """error_msgが空なら正常スタイル、それ以外はエラー表示。"""
+        """error_msgが空なら正常スタイル、それ以外はエラー表示＋映像を確認するボタンを無効化する。"""
         if error_msg:
             self.start_combo.setStyleSheet("""
                 QComboBox {
@@ -277,9 +277,12 @@ class CameraSelectScreen(QWidget):
             """)
             self.start_error_label.setText(error_msg)
             self.start_error_label.setVisible(True)
+            self.search_person_button.setEnabled(False)
+
         else:
             self.start_combo.setStyleSheet(self._combo_style)
             self.start_error_label.setVisible(False)
+            self.search_person_button.setEnabled(True)
 
     def _on_start_time_changed(self, text: str) -> None:
         self._apply_start_time_error(self._validate_start_time(text))

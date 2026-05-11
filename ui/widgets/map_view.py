@@ -145,8 +145,8 @@ class MapGraphicsView(QGraphicsView):
                 # カメラアイコンをマップ上に配置
                 icon_defs = [
                     # (通常時画像ファイル名, 選択時画像ファイル名, x座標, y座標, カメラ名)
-                    ("orange_6.png", "red_6.png", 246, 145, "カメラA"),
                     # ↓ MAP上にアイコンを追加する場合はここに記載
+                    ("orange_6.png", "red_6.png", 246, 145, "カメラA"),
                     ("orange_6.png", "red_6.png", 265, 145, "カメラB"),
                     ("orange_6.png", "red_6.png", 285, 145, "カメラC"),
                     ("orange_6.png", "red_6.png", 305, 145, "カメラD"),
@@ -154,7 +154,8 @@ class MapGraphicsView(QGraphicsView):
                     ("orange_6.png", "red_6.png", 345, 145, "カメラF"),
                     ("orange_6.png", "red_6.png", 365, 145, "カメラG"),
                     ("orange_6.png", "red_6.png", 385, 145, "カメラH"),
-                    ("orange_10.png", "red_10.png", 405, 145, "カメラI")
+                    ("orange_10.png", "red_10.png", 405, 145, "カメラI"),
+                    ("orange_10.png", "red_10.png", 425, 145, "カメラJ")
                 ]
                 
                 self._camera_icons = []

@@ -15,9 +15,21 @@ VIDEO_DIR = BASE_DIR / "car_speeding_back" / "video"       # 動画ルートフ�
 USE_TENSORRT = True  # True: TensorRTエンジン使用, False: PyTorchモデル使用
 TENSORRT_BATCH_SIZE = 128  # TensorRTバッチ推論のバッチサイズ
 YOLO_DETECT_BATCH_SIZE = 16  # フレームループで一度に推論するフレーム数 (1=逐次, 大きいほどGPU効率↑)
-YOLO_ENGINE_PATH = MODELS_DIR / "yolov8s.engine"
+
+# -------------------------
+# 車検出モデル選択
+# -------------------------
+# "yolov8s" : YOLOv8 Small (COCOクラスで多クラス検出)
+# "yolo26n" : YOLO26 Nano (軽量・高速)
+CAR_DETECTOR_MODEL = "yolov8s"
+
+_CAR_MODEL_PATHS = {
+    "yolov8s": (MODELS_DIR / "yolov8s.engine", MODELS_DIR / "yolov8s.pt"),
+    "yolo26n": (MODELS_DIR / "yolo26n.engine", MODELS_DIR / "yolo26n.pt"),
+}
+YOLO_ENGINE_PATH, YOLO_MODEL_PATH = _CAR_MODEL_PATHS[CAR_DETECTOR_MODEL]
+
 YOLO_PLATE_ENGINE_PATH = MODELS_DIR / "yolov8n-np.engine"
-YOLO_MODEL_PATH = MODELS_DIR / "yolov8s.pt"
 YOLO_PLATE_MODEL_PATH = MODELS_DIR / "yolov8n-np.pt"  # ナンバープレート検出専用モデル
 FAST_PLATE_OCR_MODEL_DIR = MODELS_DIR / "fast-plate-ocr"  # fast-plate-ocrモデル保存先
 
@@ -28,10 +40,11 @@ FAST_PLATE_OCR_MODEL_DIR = MODELS_DIR / "fast-plate-ocr"  # fast-plate-ocrモデ
 # 複数クラスを検出対象に
 VEHICLE_CLASS_IDS = [2, 3, 5, 7]  # 車、バイク、バス、トラック
 CAR_CLASS_ID = 2  # 後方互換性のため維持
-CONF_TH = 0  # 誤検出を抑えつつ検出漏れを防ぐバランス値
-NMS_IOU_TH = 0.3  # YOLO NMS の IoU 閾値
+CONF_TH = 0.25  # 誤検出を抑えつつ検出漏れを防ぐバランス値
+NMS_IOU_TH = 0.1  # YOLO NMS の IoU 閾値
 MIN_BBOX_SIZE = 0  # 最小BBoxサイズ [px] (これ未満の検出は除外)
 PLATE_CONF_TH = 0.25  # ナンバープレート検出の信頼度閾値
+YOLO_INFER_SKIP= 1  # フレームスキップして推論する間隔 (1=全フレーム, 2=1/2フレーム, ...)
 
 # -------------------------
 # デバイス設定
@@ -75,6 +88,9 @@ SPEED_MIN_THRESHOLD_KMH = 3.0 # この速度以下は停車とみなす [km/h]
 SPEED_MIN_PIXEL_MOVEMENT = 2.0 # このピクセル以下の移動はノイズとみなす
 SPEED_MAX_LIMIT = 80.0 # 速度上限 [km/h] (これ以上は異常値とみなしBBOX非表示)
 SPEED_LIMIT = 25.0 # 速度制限 [km/h] (DB未設定時のフォールバック値)
+BBOX_OVERLAP_SPEED_SPIKE_IOU_TH = 0.07  # bbox重なり検出の IoU 閾値 (速度スパイク抑制用)
+BBOX_OVERLAP_SPEED_SPIKE_RATIO  = 2.0   # 平滑速度との差がこの値 [km/h] 以上でスパイクとみなすか
+MAX_CENTROID_JUMP_PX = 60              # フレーム間の重心移動量上限 [px] (これ超は物理的にあり得ない移動としてスキップ)
 TRACK_MIN_AGE_FRAMES = 6     # この検出フレーム数未満のトラックは速度計算しない
 
 # -------------------------
