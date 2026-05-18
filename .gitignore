@@ -8,3 +8,4 @@ assets/
 ffmpeg/
 ffmpeg.zip
 result/
+.env
