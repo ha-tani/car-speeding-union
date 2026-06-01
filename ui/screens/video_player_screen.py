@@ -67,14 +67,14 @@ class VideoPlayerScreen(QWidget):
         self,
         path: str,
         datetime_str: str = "",
-        camera_id: int | None = None,
+        camera_name: str | None = None,
         realtime_detection: bool = False,
     ) -> None:
         """指定パスの動画を VideoPlayerView に読み込んで再生する。"""
         self.video_view.load_video(
             path,
             datetime_str,
-            camera_id=camera_id,
+            camera_name=camera_name,
             realtime_detection=realtime_detection,
         )
 

@@ -44,14 +44,14 @@ class RealtimeDetectionInterface:
     def is_initialized(self) -> bool:
         return self._car_detector is not None and self._speed_tracker is not None
 
-    def initialize(self, fps: float, camera_id: int | None = None) -> bool:
+    def initialize(self, fps: float, camera_name: str | None = None) -> bool:
         """YoloDetector と SpeedTracker を初期化する。
 
         Args:
             fps: 動画のフレームレート。
-            camera_id: カメラID（cameras テーブルの camera_code に対応）。
-                       指定時は DB からキャリブレーション値を取得する。
-                       None または DB 取得失敗時は config の値にフォールバック。
+            camera_name: カメラ名（cameras テーブルの camera_name に対応）。
+                         指定時は DB からキャリブレーション値を取得する。
+                         None または DB 取得失敗時は config の値にフォールバック。
         Returns:
             初期化に成功した場合 True。
         """
@@ -62,24 +62,24 @@ class RealtimeDetectionInterface:
             speed_limit = None
 
             # DB からカメラパラメータを取得
-            if camera_id is not None:
+            if camera_name is not None:
                 try:
-                    from db.db_query import get_camera_params_by_id
-                    params = get_camera_params_by_id(camera_id)
+                    from db.db_query import get_camera_by_name
+                    params = get_camera_by_name(camera_name)
                     if params:
                         src_points = params.get("road_range")
                         road_width = params.get("road_width")
                         road_depth = params.get("road_depth")
                         speed_limit = params.get("speed_limit")
                         self._log.info(
-                            "DBからカメラパラメータを取得しました (camera_code=%s): "
+                            "DBからカメラパラメータを取得しました (camera_name=%s): "
                             "road_width=%s, road_depth=%s, speed_limit=%s",
-                            camera_id, road_width, road_depth, speed_limit,
+                            camera_name, road_width, road_depth, speed_limit,
                         )
                     else:
                         self._log.warning(
-                            "camera_code=%s の行が cameras テーブルに見つかりません。config を使用します。",
-                            camera_id,
+                            "camera_name=%s の行が cameras テーブルに見つかりません。config を使用します。",
+                            camera_name,
                         )
                 except Exception as db_exc:
                     self._log.warning(

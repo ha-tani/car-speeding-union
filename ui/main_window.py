@@ -167,7 +167,7 @@ class MainWindow(QMainWindow):
         self.video_player_screen.load_video(
             tmp_path,
             f"{start_at} ～ {end_at}",
-            camera_id=camera_id,
+            camera_name=f"Cam{camera_id}",
             realtime_detection=True,
         )
         self.video_player_screen.set_source("person_select")
@@ -234,13 +234,14 @@ class MainWindow(QMainWindow):
         """検索結果の再生ボタン押下 → ffmpeg で動画を切り取り → 映像プレイヤー画面で再生。"""
         detected_at = row_data.get("detected_at")
         camera_id = row_data.get("camera_id")
+        camera_name = row_data.get("camera_name")
 
         if detected_at is None or camera_id is None:
             self.log.warning("再生に必要な情報が不足しています: %s", row_data)
             return
 
         source = "search_result"  # 検索結果画面からの遷移であることを示すフラグ
-        self._play_clipped_video(detected_at, camera_id, source, centered=True)
+        self._play_clipped_video(detected_at, camera_id, source, centered=True, camera_name=camera_name)
 
     def _play_clipped_video(
         self,
@@ -248,6 +249,7 @@ class MainWindow(QMainWindow):
         camera_id: int,
         source: str,
         centered: bool = False,
+        camera_name: str | None = None,
     ) -> None:
         """ffmpeg で切り出した一時ファイルを映像プレイヤー画面で再生する共通処理。"""
         if centered:
@@ -275,7 +277,7 @@ class MainWindow(QMainWindow):
         self.video_player_screen.load_video(
             tmp_path,
             str(detected_at),
-            camera_id=camera_id,
+            camera_name=camera_name,
             realtime_detection=True,
         )
         if source:

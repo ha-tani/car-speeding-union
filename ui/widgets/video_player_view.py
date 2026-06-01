@@ -198,7 +198,7 @@ class VideoPlayerView(QWidget):
         # 開始日時（位置を実時刻に変換するために使用）
         self._start_datetime: _Datetime | None = None
         self._realtime_detection_enabled: bool = False
-        self._camera_id: Optional[int] = None
+        self._camera_name: Optional[str] = None
         self._detection_iface: Optional[RealtimeDetectionInterface] = None
 
         # シグナル接続
@@ -211,7 +211,7 @@ class VideoPlayerView(QWidget):
         self,
         path: str,
         datetime_str: str = "",
-        camera_id: Optional[int] = None,
+        camera_name: Optional[str] = None,
         realtime_detection: bool = False,
     ) -> None:
         """指定パスの動画ファイルを読み込んで再生する。
@@ -219,10 +219,10 @@ class VideoPlayerView(QWidget):
         Args:
             path: 動画ファイルのパス。
             datetime_str: コントロールバーに表示する再生日時文字列。省略時は非表示。
-            camera_id: 速度測定用のカメラID。
+            camera_name: 速度測定用のカメラ名（cameras テーブルの camera_name）。
             realtime_detection: True の場合は再生中フレームで検出・速度測定を行う。
         """
-        self.set_realtime_detection_enabled(realtime_detection, camera_id=camera_id)
+        self.set_realtime_detection_enabled(realtime_detection, camera_name=camera_name)
 
         if not Path(path).exists():
             self._placeholder.setText(f"動画ファイルが見つかりません:\n{path}")
@@ -372,7 +372,7 @@ class VideoPlayerView(QWidget):
 
     def set_realtime_detection_enabled(self, enabled: bool, **kwargs) -> None:
         self._realtime_detection_enabled = enabled
-        self._camera_id = kwargs.get("camera_id")
+        self._camera_name = kwargs.get("camera_name")
         self._reset_realtime_pipeline()
 
     def _reset_realtime_pipeline(self) -> None:
@@ -385,7 +385,7 @@ class VideoPlayerView(QWidget):
             return True
 
         iface = RealtimeDetectionInterface()
-        if not iface.initialize(self._fps, self._camera_id):
+        if not iface.initialize(self._fps, self._camera_name):
             self._log.error("リアルタイム検出初期化に失敗しました")
             self._realtime_detection_enabled = False
             self._detection_iface = None

@@ -123,8 +123,12 @@ BYTE_TRACK_USE_GPU = os.getenv("BYTE_TRACK_USE_GPU", "false").lower() == "true"
 # -------------------------
 # 静止車両フィルタ設定
 # -------------------------
+# ENABLE_STATIONARY_FILTER: False にすると _is_stationary が常に False を返し、
+# 静止判定によるトラックスキップ・長期静止リセット処理がまるごと無効化される。
+ENABLE_STATIONARY_FILTER = os.getenv("ENABLE_STATIONARY_FILTER", "true").lower() == "true"
 STATIONARY_FILTER_FRAMES = int(os.getenv("STATIONARY_FILTER_FRAMES", "5"))
-STATIONARY_MIN_DISPLACEMENT = int(os.getenv("STATIONARY_MIN_DISPLACEMENT", "7"))
+STATIONARY_MIN_DISPLACEMENT = int(os.getenv("STATIONARY_MIN_DISPLACEMENT", "7"))  # パス2(速度計算)で使用
+PROBE_STATIONARY_MIN_DISPLACEMENT = int(os.getenv("PROBE_STATIONARY_MIN_DISPLACEMENT", "7"))  # パス1/1.5(probe静止判定)で使用
 STATIONARY_OVERLAP_IOU_TH = float(os.getenv("STATIONARY_OVERLAP_IOU_TH", "0.2"))
 
 # -------------------------
@@ -157,3 +161,8 @@ CAPTURE_DIR_PLATE = BASE_DIR / "image" / "plate"   # プレートキャプチャ
 # 開発モード設定
 # -------------------------
 DEV_MODE = os.getenv("DEV_MODE", "true").lower() == "true"
+
+# -------------------------
+# OCR設定
+# -------------------------
+USE_OCR = os.getenv("USE_OCR", "true").lower() == "true"

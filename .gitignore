@@ -4,6 +4,7 @@ __pycache/
 err.txt
 out.txt
 videos/
+image/
 assets/
 ffmpeg/
 ffmpeg.zip
