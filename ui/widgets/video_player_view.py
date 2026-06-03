@@ -403,6 +403,7 @@ class VideoPlayerView(QWidget):
             results = self._detection_iface.detect_and_track(frame)
             for result in results:
                 x1, y1, x2, y2 = [int(v) for v in result.bbox]
+                display_speed_kmh = int(result.speed_kmh + 0.5)
                 color = (
                     config.SPEED_WARNING_COLOR
                     if result.is_speeding
@@ -411,7 +412,7 @@ class VideoPlayerView(QWidget):
                 cv2.rectangle(frame, (x1, y1), (x2, y2), color, config.BBOX_THICKNESS)
                 cv2.putText(
                     frame,
-                    f"ID:{result.track_id} {result.speed_kmh:.1f}km/h",
+                    f"ID:{result.track_id} {display_speed_kmh}km/h",
                     (x1, max(y1 - 6, 0)),
                     cv2.FONT_HERSHEY_SIMPLEX,
                     config.FONT_SCALE,

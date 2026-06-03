@@ -57,6 +57,7 @@ FAST_PLATE_OCR_MODEL_DIR = MODELS_DIR / "fast-plate-ocr"  # fast-plate-ocrモデ
 VEHICLE_CLASS_IDS = json.loads(os.getenv("VEHICLE_CLASS_IDS", "[2,3,5,7]"))  # 車、バイク、バス、トラック
 CAR_CLASS_ID = int(os.getenv("CAR_CLASS_ID", "2"))  # 後方互換性のため維持
 CONF_TH = float(os.getenv("CONF_TH", "0.25"))
+BIKE_CONF_TH = float(os.getenv("BIKE_CONF_TH", "0.01"))  # バイク(class_id=3)専用 信頼度閾値
 NMS_IOU_TH = float(os.getenv("NMS_IOU_TH", "0.1"))
 MIN_BBOX_SIZE = int(os.getenv("MIN_BBOX_SIZE", "0"))
 PLATE_CONF_TH = float(os.getenv("PLATE_CONF_TH", "0.25"))
